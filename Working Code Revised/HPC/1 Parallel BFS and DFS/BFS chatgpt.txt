@@ -1,0 +1,110 @@
+Sure, let's break down the provided C++ code step by step:
+
+1. **Header Includes**: 
+   ```cpp
+   #include <iostream>
+   #include <vector>
+   #include <queue>
+   #include <omp.h>
+   ```
+   - `iostream`: Input/output stream library for console I/O.
+   - `vector`: Standard template library (STL) container for dynamic arrays.
+   - `queue`: STL container for implementing queues.
+   - `omp.h`: Header file for OpenMP, a library for parallel programming in C, C++, and Fortran.
+
+2. **Namespace Declaration**: 
+   ```cpp
+   using namespace std;
+   ```
+   This line allows us to use names from the `std` namespace (Standard C++ Library) without prefixing them with `std::`.
+
+3. **Graph Class Definition**:
+   ```cpp
+   class Graph
+   {
+       int V;                   // Number of vertices
+       vector<vector<int>> adj; // Adjacency list
+   public:
+       Graph(int V) : V(V), adj(V) {}
+       void addEdge(int v, int w)
+       {
+           adj[v].push_back(w);
+       }
+       void parallelBFS(int startVertex)
+       {
+           // BFS implementation goes here
+       }
+   };
+   ```
+   - `Graph`: Class representing a graph with its adjacency list.
+   - `V`: Number of vertices in the graph.
+   - `adj`: 2D vector representing the adjacency list of the graph.
+   - `Graph(int V)`: Constructor initializing the number of vertices and adjacency list.
+   - `addEdge(int v, int w)`: Method to add an edge between vertices `v` and `w`.
+   - `parallelBFS(int startVertex)`: Method to perform parallel Breadth-First Search (BFS) starting from the specified `startVertex`.
+
+4. **Method `parallelBFS` Implementation**:
+   ```cpp
+   void parallelBFS(int startVertex)
+   {
+       vector<bool> visited(V, false); // Initialize all vertices as not visited
+       queue<int> q;                    // Create a queue for BFS
+       visited[startVertex] = true;     // Mark the current node as visited and enqueue it
+       q.push(startVertex);
+
+       while (!q.empty()) // Loop until the queue is empty
+       {
+           int v = q.front(); // Dequeue a vertex from the queue and print it
+           q.pop();
+           cout << v << " ";
+
+           #pragma omp parallel for // Parallel loop for exploring adjacent vertices
+           for (int i = 0; i < adj[v].size(); ++i)
+           {
+               int n = adj[v][i]; // Get the next adjacent vertex
+               if (!visited[n])    // If it's not visited yet, mark it as visited and enqueue it
+               {
+                   visited[n] = true;
+                   q.push(n);
+               }
+           }
+       }
+   }
+   ```
+   - Inside the `parallelBFS` method:
+     - `visited`: Vector to mark visited vertices.
+     - `q`: Queue for BFS traversal.
+     - The method starts by marking the `startVertex` as visited and enqueuing it.
+     - It then enters a loop until the queue is empty.
+     - In each iteration:
+       - Dequeue a vertex `v` from the queue and print it.
+       - Use OpenMP pragma `#pragma omp parallel for` to parallelize the loop for exploring adjacent vertices.
+       - For each adjacent vertex `n` of `v`, if it's not visited yet, mark it as visited and enqueue it.
+
+5. **Main Function**:
+   ```cpp
+   int main()
+   {
+       Graph g(7);                // Create a graph with 7 vertices
+       // Add edges to the graph
+       g.addEdge(0, 1);
+       g.addEdge(0, 2);
+       g.addEdge(1, 3);
+       g.addEdge(1, 4);
+       g.addEdge(2, 5);
+       g.addEdge(2, 6);
+       cout << endl;
+       cout << "Breadth-First Search (BFS): ";
+       g.parallelBFS(0);          // Perform parallel BFS starting from vertex 0
+       cout << endl;
+       return 0;
+   }
+   ```
+   - The `main` function:
+     - Creates a graph `g` with 7 vertices.
+     - Adds edges to the graph.
+     - Prints a message indicating the BFS traversal is starting.
+     - Calls the `parallelBFS` method of the `Graph` class starting from vertex 0.
+     - Finally, returns 0 to indicate successful execution.
+
+Overall, this code implements parallel Breadth-First Search (BFS) using OpenMP for parallelization. It explores vertices in parallel, which can lead to improved performance on systems with multiple cores or processors.
